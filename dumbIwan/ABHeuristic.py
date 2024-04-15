@@ -52,8 +52,33 @@ def print_board(board):
 #----------------------------------------------------------------#
 #-------------------Alpha Beta Prunning--------------------------#
 #----------------------------------------------------------------#
-def evaluate():
+def evaluate(player): #以player为考虑标准. 如果是优势局返回值应该是负的, 否则是正的. 
 
+    (player,	player,	    1-player)
+    (player,	player,	    EMPTY)
+    (player,	1-player,	player)
+    (player,	1-player,	1-player)
+    (player,	1-player,	EMPTY)
+    (player,	EMPTY,	    player)
+    (player,	EMPTY,	    1-player)
+    (player,	EMPTY,	    EMPTY)
+    (1-player,	player,	    player)
+    (1-player,	player,	    1-player)
+    (1-player,	player,	    EMPTY)
+    (1-player,	1-player,	player)
+    (1-player,	1-player,	EMPTY)
+    (1-player,	EMPTY,	    player)
+    (1-player,	EMPTY,	    1-player)
+    (1-player,	EMPTY,	    EMPTY)
+    (EMPTY,	    player,	    player)
+    (EMPTY,	    player,	    1-player)
+    (EMPTY,	    player,	    EMPTY)
+    (EMPTY,	    1-player,	player)
+    (EMPTY,	    1-player,	1-player)
+    (EMPTY,	    1-player,	EMPTY)
+    (EMPTY,	    EMPTY,	    player)
+    (EMPTY,	    EMPTY,	    1-player)
+    (EMPTY,	    EMPTY,	    EMPTY)
 
     return  0
 
@@ -81,7 +106,7 @@ def alphabeta( player, m, board, alpha, beta, best_move, depth=10 ):
         return -1000 + m  # better to win faster (or lose slower)
 
     if depth == 0:
-        return evaluate()
+        return evaluate(1-player)
 
     this_move = 0
     for r in range( 1, 10):
