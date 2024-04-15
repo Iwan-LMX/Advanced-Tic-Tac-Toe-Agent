@@ -51,24 +51,37 @@ def print_board(board):
 #----------------------------------------------------------------#
 #-----------------Self Defined function--------------------------#
 #----------------------------------------------------------------#
-def next_board(boards, curr, opp_turn = 1, deepth=3):
-    board = list(boards[curr])
+def next_board(boards, curr, opp_turn = 1, deepth=5): #JJ的
+    board = boards[curr]
     score = 0
     
-
     for i in range(1, 10):
-        if abs(evaluates[tuple(board)][WE][opp_turn]) == MAX_EVAL:
-            score += evaluates[tuple(board)][WE][opp_turn]
-        else:
-            score += evaluates[tuple(board)][WE][opp_turn] * (2**deepth)
-
+        try:
+            score += evaluates[tuple(board)][i-1][WE][opp_turn]
+        except:
+            score += 0
+        
         if deepth > 0 and board[i] == EMPTY:
             board[i] = OPP if opp_turn else WE
             score += next_board(boards, i, 1 - opp_turn, deepth - 1)
             board[i] = EMPTY
 
     return score / 10
+# def next_board(boards, curr, opp_turn = 1, deepth=4):
+#     board = boards[curr]
+#     score = 0
+#     try:
+#         score += evaluates[tuple(board)][WE][opp_turn]
+#     except:
+#         score += 0
+#     for i in range(1, 10):
 
+#         if deepth > 0 and board[i] == EMPTY:
+#             board[i] = OPP if opp_turn else WE
+#             score += next_board(boards, i, 1 - opp_turn, deepth - 1)
+#             board[i] = EMPTY
+
+#     return score / 10
 
 def one_step_win(role, board):
     for i, j, k in [
@@ -82,7 +95,7 @@ def one_step_win(role, board):
         (3, 5, 7),
     ]:
         line = [board[i], board[j], board[k]]
-        if sorted(line) == [EMPTY, role, role]:
+        if sorted(line) == [role, role, EMPTY]:
             return (i, j, k)
     return None
 
@@ -198,5 +211,5 @@ def main():
 
 if __name__ == "__main__":
     evaluates = {}
-    evaluates = np.load('SimpleEvaluate.npy', allow_pickle=True).item()
+    evaluates = np.load('MySimpleEvaluate.npy', allow_pickle=True).item()
     main()
