@@ -16,4 +16,4 @@ fi
 
 ./src/servt -p $3 & sleep 0.5
 $1 -p $3 & sleep 0.5
-$2 -p $3 
+./src/$2 -p $3 

@@ -49,38 +49,27 @@ def print_board(board):
     print_board_row(board, 7, 8, 9, 7, 8, 9)
     print()
 
+table = {
+    (1, 1, 0) : [-1,  1],   (1, 1, 2) : [-2,  2],  (1, 0, 1) : [-1,  1], (1, 0, 0) : [ 1, -1],
+    (1, 0, 2) : [ 0,  0],   (1, 2, 1) : [-2,  2],  (1, 2, 0) : [ 0,  0], (1, 2, 2) : [-1,  1],
+    (0, 1, 1) : [-1,  1],   (0, 1, 0) : [ 1, -1],  (0, 1, 2) : [ 0,  0], (0, 0, 1) : [ 1, -1],
+    (0, 0, 2) : [ 2, -2],   (0, 2, 1) : [ 0,  0],  (0, 2, 0) : [ 2, -2], (0, 2, 2) : [ 1, -1],
+    (2, 1, 1) : [-2,  2],   (2, 1, 0) : [ 0,  0],  (2, 1, 2) : [-1,  1], (2, 0, 1) : [ 0,  0],
+    (2, 0, 0) : [ 2, -2],   (2, 0, 2) : [ 1, -1],  (2, 2, 1) : [-1,  1], (2, 2, 0) : [ 1, -1],
+    (2, 2, 2) : [ 1,  1],   (1, 1, 1) : [-1000, 1000],      (0, 0, 0) : [1000, -1000]
+}
+
 #----------------------------------------------------------------#
 #-------------------Alpha Beta Prunning--------------------------#
 #----------------------------------------------------------------#
 def evaluate(player): #以player为考虑标准. 如果是优势局返回值应该是负的, 否则是正的. 
-
-    (player,	player,	    1-player)
-    (player,	player,	    EMPTY)
-    (player,	1-player,	player)
-    (player,	1-player,	1-player)
-    (player,	1-player,	EMPTY)
-    (player,	EMPTY,	    player)
-    (player,	EMPTY,	    1-player)
-    (player,	EMPTY,	    EMPTY)
-    (1-player,	player,	    player)
-    (1-player,	player,	    1-player)
-    (1-player,	player,	    EMPTY)
-    (1-player,	1-player,	player)
-    (1-player,	1-player,	EMPTY)
-    (1-player,	EMPTY,	    player)
-    (1-player,	EMPTY,	    1-player)
-    (1-player,	EMPTY,	    EMPTY)
-    (EMPTY,	    player,	    player)
-    (EMPTY,	    player,	    1-player)
-    (EMPTY,	    player,	    EMPTY)
-    (EMPTY,	    1-player,	player)
-    (EMPTY,	    1-player,	1-player)
-    (EMPTY,	    1-player,	EMPTY)
-    (EMPTY,	    EMPTY,	    player)
-    (EMPTY,	    EMPTY,	    1-player)
-    (EMPTY,	    EMPTY,	    EMPTY)
-
-    return  0
+    eval = 0
+    for board in boards[1:]:
+        for i, j, k in [(1, 2, 3),(4, 5, 6),(7, 8, 9),(1, 4, 7),(2, 5, 8),(3, 6, 9),(1, 5, 9),(3, 5, 7)]:
+            line = (board[i], board[j], board[k])
+            eval += table[line][player]
+        
+    return  -eval
 
 def win(role, board):
     for i, j, k in [
@@ -98,7 +87,7 @@ def win(role, board):
             return (i, j, k)
     return None
 
-def alphabeta( player, m, board, alpha, beta, best_move, depth=10 ):
+def alphabeta( player, m, board, alpha, beta, best_move, depth=4 ):
 
     best_eval = MIN_EVAL
 
