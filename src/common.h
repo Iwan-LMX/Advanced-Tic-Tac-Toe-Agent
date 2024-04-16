@@ -16,7 +16,7 @@
 #define LOSS           3
 #define DRAW           4
 #define TRIPLE         5
-#define TIMEOUT        30 //6
+#define TIMEOUT        6
 #define FULL_BOARD     7
 
 extern char sb[5];
