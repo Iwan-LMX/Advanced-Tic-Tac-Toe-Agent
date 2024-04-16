@@ -8,6 +8,7 @@ import socket
 import sys
 import numpy as np
 
+EMPTY = 2
 MAX_MOVE = 9
 
 # a board cell can hold:
@@ -19,13 +20,8 @@ OPP = 1
 EMPTY = 2
 MIN_EVAL = -1000000
 MAX_EVAL = 1000000
-NEARLY_WIN_EVAL = 30
-NEARLY_LOSS_EVAL = -20
-GOTO_WIN_EVAL = 15
-GOTO_LOSS_EVAL = -10
-AVAIL_MOVES = {WE: list(range(1, 10)), OPP: list(range(1, 10))}
-MAX_DEPTH = 5
-SECOND_DEPTH = 3
+
+MAX_DEPTH = 6
 
 # the boards are of size 10 because index 0 isn't used
 boards = EMPTY * np.ones((10, 10), dtype="int8")
@@ -75,9 +71,43 @@ def print_board(board):
     print()
 
 
-def evaluate(boards, role):
-    score = 0
-    for board in boards:
+table = {  # line: [eval for X(0), eval for O(1)]
+    (1, 1, 0): [0, 4],
+    (1, 0, 1): [0, 0],
+    (0, 1, 1): [0, 4],
+    (1, 0, 0): [4, 0],
+    (0, 1, 0): [0, 0],
+    (0, 0, 1): [4, 0],
+    (2, 0, 1): [0, 0],
+    (2, 1, 0): [0, 0],
+    (0, 2, 1): [0, 0],
+    (1, 2, 0): [0, 0],
+    (0, 1, 2): [0, 0],
+    (1, 0, 2): [0, 0],
+    (2, 2, 2): [0, 0],
+    (2, 1, 1): [-90, 45],
+    (1, 2, 1): [-90, 45],
+    (1, 1, 2): [-90, 45],
+    (0, 0, 2): [45, -90],
+    (0, 2, 0): [45, -90],
+    (2, 0, 0): [45, -90],
+    (0, 2, 2): [10, -10],
+    (2, 0, 2): [10, -10],
+    (2, 2, 0): [10, -10],
+    (1, 2, 2): [-10, 10],
+    (2, 1, 2): [-10, 10],
+    (2, 2, 1): [-10, 10],
+    (1, 1, 1): [MIN_EVAL, MAX_EVAL],
+    (0, 0, 0): [MAX_EVAL, MIN_EVAL],
+}
+
+
+# ----------------------------------------------------------------#
+# -------------------Alpha Beta Prunning--------------------------#
+# ----------------------------------------------------------------#
+def evaluate(player):  # 以player为考虑标准. 如果是优势局返回值应该是负的, 否则是正的.
+    eval = 0
+    for board in boards[1:]:
         for i, j, k in [
             (1, 2, 3),
             (4, 5, 6),
@@ -88,130 +118,10 @@ def evaluate(boards, role):
             (1, 5, 9),
             (3, 5, 7),
         ]:
-            line = [board[i], board[j], board[k]]
-            if line.count(role) == 3:
-                score += MAX_EVAL
-            elif line.count(1 - role) == 3:
-                score += MIN_EVAL
-            elif line.count(role) == 2 and line.count(EMPTY) == 1:
-                score += NEARLY_WIN_EVAL
-            elif line.count(1 - role) == 2 and line.count(EMPTY) == 1:
-                score += NEARLY_LOSS_EVAL
-            elif line.count(role) == 1 and line.count(EMPTY) == 2:
-                score += GOTO_WIN_EVAL
-            elif line.count(1 - role) == 1 and line.count(EMPTY) == 2:
-                score += GOTO_LOSS_EVAL
+            line = (board[i], board[j], board[k])
+            eval += table[line][player]
 
-    return score
-
-
-# ----------------------------------------------------------------#
-# -------------------Alpha Beta Prunning--------------------------#
-# ----------------------------------------------------------------#
-def alphabeta(player, m, curr, boards, alpha, beta, best_move, depth=0):
-
-    best_eval = MIN_EVAL
-    board = boards[curr]
-
-    if depth == 0:
-        print("@117")
-    if one_step_win(player, board):
-        if depth == 0:
-            print("@120")
-        return MAX_EVAL
-    elif win(1 - player, board):
-        if depth == 0:
-            print("@124")
-        return MIN_EVAL
-
-    if depth >= MAX_DEPTH:
-        if depth == 0:
-            print("@129")
-        return evaluate(boards, player)
-    else:
-        this_move = 0
-        for r in range(1, 10):
-            if board[r] == EMPTY:  # move is legal
-                if depth == 0:
-                    print("@128", board, r, board[r], EMPTY)
-                    print("@137", m, best_move[m])
-                this_move = r
-                board[this_move] = player  # make move
-                this_eval = -alphabeta(
-                    1 - player,
-                    m + 1,
-                    this_move,
-                    boards,
-                    -beta,
-                    -alpha,
-                    best_move,
-                    depth + 1,
-                )
-                board[this_move] = EMPTY  # undo move
-                if depth == 0:
-                    print("@151", this_eval, best_eval, m, best_move[m])
-                if this_eval > best_eval:
-                    best_move[m] = this_move
-                    best_eval = this_eval  # evaluate 评估
-                    if best_eval > alpha:
-                        alpha = best_eval
-                        if alpha >= beta:  # cutoff
-                            return alpha
-
-    if this_move == 0:  # no legal moves
-        if depth == 0:
-            print("@160")
-        return 0  # DRAW
-    elif not best_move[m]:
-        best_move[m] = this_move
-        return MIN_EVAL
-    else:
-        return alpha
-
-
-def next_board(boards, curr, my_turn=0, deepth=3):
-    score = 0
-    board = boards[curr]
-    for i in range(1, 10):
-        if board[i] != EMPTY:
-            if not my_turn:
-                if board[i] == OPP:
-                    score -= 20 * (2**deepth)
-                elif board[i] == WE:
-                    score -= 10 * (2**deepth)
-                if one_step_win(OPP, board):
-                    # print("@28 X is one step to win at", one_step_win(OPPONENT, board))
-                    score -= MAX_EVAL
-            else:
-                if board[i] == WE:
-                    score += 20 * (2**deepth)
-                elif board[i] == OPP:
-                    score += 10 * (2**deepth)
-                if one_step_win(WE, board):
-                    # print("@28 O is one step to win at", one_step_win(WEPLAY, board))
-                    score += MAX_EVAL
-        if deepth > 0 and board[i] == EMPTY:
-            board[i] = WE if my_turn else OPP
-            score += next_board(boards, i, 1 - my_turn, deepth - 1)
-            board[i] = EMPTY
-    return score / 10
-
-
-def one_step_win(role, board):
-    for i, j, k in [
-        (1, 2, 3),
-        (4, 5, 6),
-        (7, 8, 9),
-        (1, 4, 7),
-        (2, 5, 8),
-        (3, 6, 9),
-        (1, 5, 9),
-        (3, 5, 7),
-    ]:
-        line = [board[i], board[j], board[k]]
-        if sorted(line) == [role, role, EMPTY]:
-            return (i, j, k)
-    return None
+    return eval
 
 
 def win(role, board):
@@ -231,29 +141,63 @@ def win(role, board):
     return None
 
 
-def state_1():
-    print("Agent state:")
-    print_board(boards)
+def alphabeta(player, m, board, alpha, beta, best_move, depth=6):
+    best_eval = MIN_EVAL
 
-    best_eval = MIN_EVAL * 100
+    if one_step_win(player, board):
+        return MAX_EVAL - (MAX_DEPTH - depth)
+    if win(1 - player, board):
+        return MIN_EVAL + (MAX_DEPTH - depth)
+    # if  win( 1-player, board ) or win( player, board ) or depth == 0 :
+    if depth == 0:
+        return evaluate(player)
 
-    print(f"At board {curr}:", boards[curr])
-    if one_step_win(WE, boards[curr]):
-        for x in one_step_win(WE, boards[curr]):
-            if boards[curr][x] == EMPTY:
-                n = x
-                break
+    this_move = 0
+    for r in range(1, 10):
+        if board[r] == EMPTY:  # move is legal
+            this_move = r
+            board[this_move] = player  # make move
+            this_eval = -alphabeta(
+                1 - player,
+                m + 1,
+                boards[this_move],
+                -beta,
+                -alpha,
+                best_move,
+                depth - 1,
+            )
+            board[this_move] = EMPTY  # undo move
+            if depth in [MAX_DEPTH, MAX_DEPTH - 1]:
+                print(f"[{depth}]@110", this_move, this_eval)
+            if this_eval > best_eval:
+                best_move[m] = this_move
+                best_eval = this_eval  # evaluate 评估
+                if best_eval > alpha:
+                    alpha = best_eval
+                    if alpha >= beta:  # cutoff
+                        return alpha
+
+    if this_move == 0:  # no legal moves
+        return 0  # DRAW
     else:
-        for i in [5, 1, 3, 7, 9, 2, 4, 6, 8]:
-            if boards[curr][i] == EMPTY:
-                boards[curr][i] = WE
-                if (this_evel := next_board(boards, i)) > best_eval:
-                    best_eval = this_evel
-                    n = i
-                print("@87", i, this_evel)
-                boards[curr][i] = EMPTY  # Roll back
+        return alpha
 
-    return n
+
+def one_step_win(role, board):
+    for i, j, k in [
+        (1, 2, 3),
+        (4, 5, 6),
+        (7, 8, 9),
+        (1, 4, 7),
+        (2, 5, 8),
+        (3, 6, 9),
+        (1, 5, 9),
+        (3, 5, 7),
+    ]:
+        line = [board[i], board[j], board[k]]
+        if sorted(line) == [role, role, EMPTY]:
+            return (i, j, k)
+    return None
 
 
 # choose a move to play
@@ -266,21 +210,8 @@ def play():
                 n = x
                 break
     else:
-        print("@252", boards[curr], m, best_move[m])
-        best_move[m] = 0
-        if m < 12:
-            alphabeta(
-                WE,
-                m,
-                curr,
-                boards,
-                MIN_EVAL,
-                MAX_EVAL,
-                best_move,
-                depth=1,
-            )
-        else:
-            alphabeta(WE, m, curr, boards, MIN_EVAL, MAX_EVAL, best_move, depth=0)
+
+        alphabeta(WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=MAX_DEPTH)
         n = best_move[m]
 
     print("playing", n, "at", curr)
@@ -294,9 +225,6 @@ def place(board, num, player):
     global curr
     curr = num
     boards[board][num] = player
-    if one_step_win(player, boards[board]):
-        if board in AVAIL_MOVES[1 - player]:
-            AVAIL_MOVES[1 - player].remove(board)
 
 
 # read what the server sent us and
