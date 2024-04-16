@@ -22,7 +22,7 @@ MIN_EVAL = -1000000
 MAX_EVAL = 1000000
 
 START_DEPTH = 6
-MAX_DEPTH = 9
+MAX_DEPTH = 11
 
 # ROLE_COUNT = {WE:{i: 0 for i in range(1, 10)}, OPP:{i: 0 for i in range(1, 10)}}
 
@@ -170,8 +170,8 @@ def alphabeta(player, m, board, alpha, beta, best_move, depth=6):
                 depth - 1,
             )
 
-            if depth in [MAX_DEPTH, MAX_DEPTH - 1]:
-                print(" " * (depth - 4) + f"[{depth}]@110", this_move, this_eval)
+            # if depth in [MAX_DEPTH, MAX_DEPTH-1]:
+            #     print(" "*(depth-4) + f"[{depth}]@110", this_move, this_eval)
             board[this_move] = EMPTY  # undo move
 
             if this_eval > best_eval:
@@ -209,7 +209,7 @@ def one_step_win(role, board):
 def play():
     global m
 
-    print_board(boards)
+    # print_board(boards)
     if pos := one_step_win(WE, boards[curr]):
         for x in pos:
             if boards[curr][x] == EMPTY:
@@ -239,6 +239,26 @@ def play():
                 MAX_EVAL,
                 best_move,
                 depth=START_DEPTH + 2,
+            )
+        elif m <= 26:
+            alphabeta(
+                WE,
+                m,
+                boards[curr],
+                MIN_EVAL,
+                MAX_EVAL,
+                best_move,
+                depth=START_DEPTH + 3,
+            )
+        elif m <= 30:
+            alphabeta(
+                WE,
+                m,
+                boards[curr],
+                MIN_EVAL,
+                MAX_EVAL,
+                best_move,
+                depth=START_DEPTH + 4,
             )
         else:
             alphabeta(
