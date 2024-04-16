@@ -21,7 +21,10 @@ EMPTY = 2
 MIN_EVAL = -1000000
 MAX_EVAL = 1000000
 
-MAX_DEPTH = 6
+START_DEPTH = 6
+MAX_DEPTH = 9
+
+# ROLE_COUNT = {WE:{i: 0 for i in range(1, 10)}, OPP:{i: 0 for i in range(1, 10)}}
 
 # the boards are of size 10 because index 0 isn't used
 boards = EMPTY * np.ones((10, 10), dtype="int8")
@@ -142,7 +145,7 @@ def win(role, board):
 
 
 def alphabeta(player, m, board, alpha, beta, best_move, depth=6):
-    best_eval = MIN_EVAL
+    best_eval = MIN_EVAL - 10
 
     if one_step_win(player, board):
         return MAX_EVAL - (MAX_DEPTH - depth)
@@ -153,7 +156,7 @@ def alphabeta(player, m, board, alpha, beta, best_move, depth=6):
         return evaluate(player)
 
     this_move = 0
-    for r in range(1, 10):
+    for r in [1, 3, 7, 9, 5, 2, 4, 6, 8]:
         if board[r] == EMPTY:  # move is legal
             this_move = r
             board[this_move] = player  # make move
@@ -166,9 +169,11 @@ def alphabeta(player, m, board, alpha, beta, best_move, depth=6):
                 best_move,
                 depth - 1,
             )
-            board[this_move] = EMPTY  # undo move
+
             if depth in [MAX_DEPTH, MAX_DEPTH - 1]:
-                print(f"[{depth}]@110", this_move, this_eval)
+                print(" " * (depth - 4) + f"[{depth}]@110", this_move, this_eval)
+            board[this_move] = EMPTY  # undo move
+
             if this_eval > best_eval:
                 best_move[m] = this_move
                 best_eval = this_eval  # evaluate 评估
@@ -203,6 +208,7 @@ def one_step_win(role, board):
 # choose a move to play
 def play():
     global m
+
     print_board(boards)
     if pos := one_step_win(WE, boards[curr]):
         for x in pos:
@@ -210,8 +216,35 @@ def play():
                 n = x
                 break
     else:
+        if m <= 14:
+            alphabeta(
+                WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=START_DEPTH
+            )
+        elif m <= 18:
+            alphabeta(
+                WE,
+                m,
+                boards[curr],
+                MIN_EVAL,
+                MAX_EVAL,
+                best_move,
+                depth=START_DEPTH + 1,
+            )
+        elif m <= 22:
+            alphabeta(
+                WE,
+                m,
+                boards[curr],
+                MIN_EVAL,
+                MAX_EVAL,
+                best_move,
+                depth=START_DEPTH + 2,
+            )
+        else:
+            alphabeta(
+                WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=MAX_DEPTH
+            )
 
-        alphabeta(WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=MAX_DEPTH)
         n = best_move[m]
 
     print("playing", n, "at", curr)
