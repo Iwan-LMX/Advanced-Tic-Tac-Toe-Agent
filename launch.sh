@@ -18,14 +18,14 @@ calculate_and_print_win_rate() {
 }
 
 # Loop through departments 1 to 11
-for dep in {4..11}; do
+for dep in {1..11}; do
   win_count=0
   total_runs=0
 
   # Each department should run 100 times
-  for (( i=1; i<=100; i++ )); do
+  for (( i=1; i<=30; i++ )); do
     # Run the command and capture the output
-    output=$(./playt.sh "./dumbIwan/AlphaBeta.py" "./src/lookt -d $dep" $port)
+    output=$(./playt.sh "./FilesToSubmit/AlphaBeta_win16.py" "./src/lookt -d $dep" $port)
     last_line=$(echo "$output" | tail -n 1)
 
     # Increment total runs
