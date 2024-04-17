@@ -26,7 +26,7 @@ to evaluate the score.
 disadvantages.  It will evaluate every sub boards by considering the
 distance near the goal (self triple) and distance near lose (i.e 
 distance of opponent near his triple).  Then add them together as a
-evaluate for overall boards.
+evaluate for overall boards. (For more details, please read 4.2)
    
 
 3. Data Structures employed:#-----------------------------------------#
@@ -60,7 +60,21 @@ much more precise)
 1. (one) one go (only X or O) and two empty. 2. (two) two go (only X or O)
 and one empty. 3. (three) triple go.  And use the count numbers to
 implement our heuristic formula: h = one * 10 + two * 45 + three * MAX
-     
+    For example: suppose X(0) is playing:
+                (1,1,0) --> 0
+              ↗
+    +-------+
+    | X . X | --> (0,2,0) --> The player have two go and one empty --> 45
+    | . O . | --> (2,1,2) --> The opponent have one go and two empty --> -10
+    | O O X | --> (1,1,0) --> 0
+    +-------+
+             ↘
+              (0,1,0) --> 0
+     - column 1: (0,2,1) --> 0
+     - column 2: (2,1,1) --> The opponent have two go and one empty --> -90
+     - column 3: (0,2,0) --> The player have two go and one empty --> 45
+ 
+
     We find to count out all number is an extra action comparing calculate
 out all cases evaluate and store in a diction. So we made the 'table' in the
 program to reduce the process to calculate and search.
