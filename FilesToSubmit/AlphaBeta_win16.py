@@ -86,7 +86,7 @@ import numpy as np
 
 WE = 0;     OPP = 1;    EMPTY = 2;  MAX_MOVE = 9
 MIN_EVAL = -1000000;    MAX_EVAL = 1000000
-START_DEPTH = 6;        MAX_DEPTH = 16
+START_DEPTH = 6;        MAX_DEPTH = 18
 
 # the boards are of size 10 because index 0 isn't used
 boards = EMPTY * np.ones((10, 10), dtype="int8")
@@ -219,11 +219,13 @@ def play():
         elif m <= 22:
             alphabeta( WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=START_DEPTH + 3)
         elif m <= 24:
-            alphabeta( WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=START_DEPTH + 6)
+            alphabeta( WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=START_DEPTH + 5)
         elif m <= 26:
-            alphabeta( WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=START_DEPTH + 8)
+            alphabeta( WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=START_DEPTH + 7)
         elif m <= 28:
             alphabeta( WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=START_DEPTH + 9)
+        elif m <= 32:
+            alphabeta( WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=START_DEPTH + 11)
         else:
             alphabeta(WE, m, boards[curr], MIN_EVAL, MAX_EVAL, best_move, depth=MAX_DEPTH)
 
